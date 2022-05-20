@@ -182,3 +182,5 @@ model.save('.\modelo')
 ```
 
 Durante o treino, os resultados foram bastante insatisfatórios pois o modelo bloqueia numa loss de 7.6832 e uma accuracy de 0.6667, provavelmente devido a overfitting. Para a próxima semana realizar-se-á a tentativa de diminuir o número de Epochs e de adicionar Dropout Layers para tentar resolver este problema.
+
+![picture alt](https://imgur.com/thqRKfg "Resultados do treino")
