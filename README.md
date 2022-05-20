@@ -2,12 +2,12 @@
 
 ## Introdução
 A RCNN criada é composta por duas componentes, uma propõe regiões de interesse e a outra classifica essas regiões de interesse.
-A primeira parte usa o algoritmo Selective Search da biblioteca OpenCV para criar aproximadamente 400 propostas para uma imagem que lhe é dada.
+A primeira parte usa o algoritmo _Selective Search_ da biblioteca OpenCV para criar aproximadamente 400 propostas para uma imagem que lhe é dada.
 A segunda parte usa estas propostas e passa-as através de uma CNN treinada para obter a classificação destas regiões.
 
 ## Treino
 
-A estratégia usada foi primeiro usar o algoritmo de Selective Search para obter sugestões de localizações de Bofes e exportar as sugestões para duas pastas, uma com sugestões que correspondem a sugestões corretas de bofes e outra que corresponde a sugestões erradas.
+A estratégia usada foi primeiro usar o algoritmo de _Selective Search_ para obter sugestões de localizações de Bofes e exportar as sugestões para duas pastas, uma com sugestões que correspondem a sugestões corretas de bofes e outra que corresponde a sugestões erradas.
 
 Em relação à exportação foram primeiro importadas as anotações com o seguinte código:
 
@@ -47,7 +47,7 @@ def importAnnotations(annotationPath, imageName):
         return BoundingBoxes
 ```
 
-Após ter as lista de bounding boxes relativa às anotações, faz-se então uma iteração por todas as imagens (no total 7700, já com augmentations), usando o seguinte código:
+Após ter as lista de _bounding boxes_ relativa às anotações, faz-se então uma iteração por todas as imagens (no total 7700, já com augmentations), usando o seguinte código:
 
 ```python
 for filename in os.listdir("images/"):
@@ -83,7 +83,7 @@ def NMS(boxes, overlapThresh):
     return result
 ```
 
-3. Calcula-se a Intersection over Union (IoU) de todas as bounding boxes com todas as sugestões e as que tem um IoU acima de um threshold são guardados na pasta "bofes" e os outros na pasta "clean"
+3. Calcula-se a _Intersection over Union_ (IoU) de todas as _bounding boxes_ com todas as sugestões e as que tem um IoU acima de um threshold são guardados na pasta "bofes" e os outros na pasta "clean"
 
 ```python
 count = 0
@@ -181,6 +181,10 @@ model.fit(x=trainingData, batch_size=batch_size, epochs=epochs)
 model.save('.\modelo')
 ```
 
-Durante o treino, os resultados foram bastante insatisfatórios pois o modelo bloqueia numa loss de 7.6832 e uma accuracy de 0.6667, provavelmente devido a overfitting. Para a próxima semana realizar-se-á a tentativa de diminuir o número de Epochs e de adicionar Dropout Layers para tentar resolver este problema.
+O modelo usado foi o seguinte:
 
-![picture alt](https://imgur.com/thqRKfg "Resultados do treino")
+![picture alt](https://i.imgur.com/JZOoVXm.png "Resultados do treino")
+
+Durante o treino, os resultados foram bastante insatisfatórios pois o modelo bloqueia numa _loss_ de 7.6832 e uma _accuracy_ de 0.6667, provavelmente devido a _overfitting_. Para a próxima semana realizar-se-á a tentativa de diminuir o número de _epochs_ e de adicionar _Dropout Layers_ para tentar resolver este problema.
+
+![picture alt](https://i.imgur.com/thqRKfg.png "Resultados do treino")
