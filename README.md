@@ -1,4 +1,37 @@
-# Treino de RCNN para identificação de Bofes
+# Treino de CNN para classificação de topos de rolhas
+
+## Introdução
+
+O objetivo era criar uma CNN que fosse capaz de fazer a classificação de rolhas em três categorias: boas, médias e más, dependendo do estado do topo. Inicialmente procedeu-se à classificação de um dataset composto por aproximadamente 1000 imagens e depois ao treino e teste destas CNNs
+
+## Classificação
+
+Inicialmente havia um dataset de 880 fotografias de topos e laterais de rolhas de cortiça natural. Inicialmente foram removidas todas as fotografias de laterais já que apenas se pretendia trabalhar com os topos através de um pequeno script de python (a terminação dos ficheiros correspondentes a laterais eram diferentes das dos topos, portanto a remoção foi relativamente simples). Depois foi feita uma classificação manual das 880 imagens. Houve uma tentativa de criar uma rede neuronal a meio da classificação para classificar as imagens restantes, mas esta apresentou resultados muito insatisfatórios, logo optou-se pela classificação manual. 
+Para além deste dataset havia um dataset de 837 fotografias das mesmas rolhas mas com o fundo removido e substituido pela cor branca ou preta. De novo teve de se fazer a classificação manual de todas estas fotos, mas isto só foi feito para as fotos de fundo preto, sendo que como os nomes das fotos de fundo preto e branco eram iguais, bastou copiar as fotos com o mesmo nome para as categorias correspondentes atravé de um script de python.
+
+## Treino
+
+Após alguns erros e alguma pesquisa relativa a esses erros, foi usado o modelo de base VGG16 e o seguinte modelo:
+```python
+model = keras.models.Sequential([
+    base_model,   #VGG16
+    layers.GlobalAveragePooling2D(),
+    layers.Flatten(),
+    layers.Dropout(0.2),
+    layers.Dense(1024,activation='relu'),
+    layers.Dense(3,activation = 'softmax'),
+    layers.Flatten()
+])
+```
+Também se optou pelo otimizador SGD (Stochastic gradient descent) com um learning rate de 0.001, um batch size de 128 e 15 epochs. Aplicado ao dataset de fotografias com fundo, este treino resultou numa CNN com precisão de 74.42% e uma loss de 0.5494.
+
+Já que a classificação resultou num grande desiquilibrio no número de imagens por categoria, fez-se a tentativa de apagar as imagens excedentes em cada categoria de modo a todas terem o mesmo número de imagens e testou-se a hipotese de "um número equilibrado de imagens por categoria poderia levar a melhores resultados". Os resultados foram os contrários do esperado, sendo que so obteve uma precisão de 70.93% e uma loss de 0.7442, o que indica que o desequilibrio do número de imagens por categoria é irrelevante, mas o facto de termos removido imagens, ou seja o modelo teve menos imagens para aprender, leva a piores resultados.
+
+
+
+
+
+# Treino de RCNN para deteção de Bofes
 
 ## Introdução
 A RCNN criada é composta por duas componentes, uma propõe regiões de interesse e a outra classifica essas regiões de interesse.
