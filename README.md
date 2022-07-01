@@ -32,11 +32,14 @@ ao contrário do modelo com fundo normal, os modelos treinados com augmentations
 assim superar a performance dos modelos anteriores. Continuou também a verificar-se uma superioridade
 do modelo treinado com imagens com fundo preto.
 
-##Repetir resultados
+## Repetir resultados
 
-# Treino de RCNN para deteção de Bofes
+O script usado para treinar os modelos esta dentro da pasta "classificacao", sendo possivel usa-lo especificando uma pasta onde estão as pastas correspondentes a categorias com as imagens do dataset colocadas nas respetivas pastas e o modelo, no fim de treinado, será colocado na pasta "saved_model"
+
+# Treino de R-CNN para deteção de Bofes - 1ª tentativa
 
 ## Introdução
+Inicialmente procedeu-se à tentativa de criar uma R-CNN de raiz
 A RCNN criada é composta por duas componentes, uma propõe regiões de interesse e a outra classifica essas regiões de interesse.
 A primeira parte usa o algoritmo _Selective Search_ da biblioteca OpenCV para criar aproximadamente 400 propostas para uma imagem que lhe é dada.
 A segunda parte usa estas propostas e passa-as através de uma CNN treinada para obter a classificação destas regiões.
@@ -155,11 +158,11 @@ imageCount += 1
 ```
 
 
-O código completo relativo a esta primeira parte do algoritmo de treino está contido no ficheiro selective_search_train.py, incluindo todas as funções auxiliares usadas (cujo funcionamento não vale realmente a pena explicar).
+O código completo relativo a esta primeira parte do algoritmo de treino está contido no ficheiro detecao/primeira_tentativa/selective_search_train.py, incluindo todas as funções auxiliares usadas (cujo funcionamento não vale realmente a pena explicar).
 
 É de notar que a execução deste código é extremamente demorada, estimando-se que tenha demorado aproximadamente 8 horas a correr da primeira vez que foi testado, apesar do PC não ter uma plca gráfica.
 
-Este código gerou 654 imagens de Bofes e 1 139 634 imagens sem Bofes (equivalente a 8Gb). Perante esta enormíssima discrepância entre número de imagens de cada classe, foram apenas selecionadas aleatoriamente 1308 imagens sem Bofes de entre as obtidas para treinar a CNN, usando o código seguinte (clean_selection.py):
+Este código gerou 654 imagens de Bofes e 1 139 634 imagens sem Bofes (equivalente a 8Gb). Perante esta enormíssima discrepância entre número de imagens de cada classe, foram apenas selecionadas aleatoriamente 1308 imagens sem Bofes de entre as obtidas para treinar a CNN, usando o código seguinte (detecao/primeira_tentativa/clean_selection.py):
 
 ```python
 import os
@@ -172,7 +175,7 @@ for imageName in random_images:
     shutil.copyfile("clean/" + imageName,"clean_selected/" + imageName)
 ```
 
-Com as 654 imagens de Bofes e as 1308 imagens sem Bofe foi criado o seguinte algoritmo para treino de uma CNN (learning.py):
+Com as 654 imagens de Bofes e as 1308 imagens sem Bofe foi criado o seguinte algoritmo para treino de uma CNN (detecao/primeira_tentativa/learning.py):
 
 ```python
 import os
@@ -224,3 +227,46 @@ O modelo usado foi o seguinte:
 Durante o treino, os resultados foram bastante insatisfatórios pois o modelo bloqueia numa _loss_ de 7.6832 e uma _accuracy_ de 0.6667, provavelmente devido a _overfitting_. Para a próxima semana realizar-se-á a tentativa de diminuir o número de _epochs_ e de adicionar _Dropout Layers_ para tentar resolver este problema.
 
 ![picture alt](https://i.imgur.com/thqRKfg.png "Resultados do treino")
+
+
+# Treino de R-CNN para deteção de Bofes - Usando YOLO
+
+## Introdução
+Dado que criar uma R-CNN de raíz teve péssimos resultados, procedeu-se à tentativa de treino de uma R-CNN recorrendo ao _transfer model_ YOLOv3.
+
+## Procedimento
+Inicialmente converteu-se as labels que estavam em formato Pascal VOC em formato YOLO recorrendo a um funções criadas anteriormente. O códio usado foi o seguinte (detecao/darknet/pascalVOCtoYOLO.py):
+
+```python
+print("Converting Pascal VOC annotations to Yolo v1.1")
+imageCount = 0
+annots = os.listdir("annotations/")
+for filename in annots:
+    boxes = importAnnotations("annotations/",filename[:-4])
+    f = open("TEMP_new_annot/" + filename[:-3] + "txt","w")
+    if boxes != None:
+        for box in boxes:
+            x = ((box[0] + box[2]) / 2) / 512
+            y = ((box[1] + box[3]) / 2) / 512
+            w = (box[2] - box[0]) / 512
+            h = (box[3] - box[1]) / 512
+            f.write("0 " + str(x) + " " + str(y) + " " + str(w) + " " + str(h) + "\n")
+    f.close()
+    imageCount+=1
+    print("{:.2f}".format(imageCount/len(annots)*100) + "% (" + str(imageCount) + "/" + str(len(annots)) + ")", end = '\r')
+print("DONE!")
+```
+
+Depois, usando o repositório https://github.com/ultralytics/yolov3 foi possível, com apenas o comando
+
+```bash
+python train.py --img 512 --batch 16 --epochs 5 --data topos512.yaml --weights yolov3.pt
+```
+
+foi possível treinar um modelo de deteção recorrendo à estrutura YOLO.
+
+(RESULTADOS AINDA EM PROCESSO)
+
+## Reproduzir resultados
+
+Para reproduzir os resultados, depois de ser fazer download do repositório disponível em https://github.com/ultralytics/yolov3, dentro da pasta _data_ deste é preciso adicionar o ficheiro /detecao/darknet/topos512.yaml. No mesmo diretório onde se encontra o repositório instalado (isto é o repositório acima de, por exemplo, a pasta _data_) tem de ser criada a pasta _dataset_ e tem de ser colocado lá dentro todos os ficheiros contidos na pasta /detecao/darknet/dataset deste repositório. Dado que este repositório é público e as imagens usadas para treinar os modelos descritos anteriormente são propriedade da empresa Vimétrica, estas não estão incluidas nos ficheiros deste repositório, mas teriam de ser adicionadas a dataset/topos512/obj_train_data, juntamente com as suas anotações em formato YOLOv1.1. É necessário adicionar também o nome de todas as imagens ao ficheiro dataset/topos512/train.txt.
