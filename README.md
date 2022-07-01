@@ -4,12 +4,14 @@
 
 O objetivo era criar uma CNN que fosse capaz de fazer a classificação de rolhas em três categorias: boas, médias e más, dependendo do estado do topo. Inicialmente procedeu-se à classificação de um dataset composto por aproximadamente 1000 imagens e depois ao treino e teste destas CNNs
 
-## Classificação
+## Descrição das experiências
 
 Inicialmente procedeu-se à classificação de aproximadamente 100 imagens e ao treino de uma CNN para classificar as restante de modo mais expedito. O primeiro modelo obtido tinha uma precisão de apenas 17,19%, o que não era adequado para o fim pretendido. Inicialmente tentou-se adicionar uma dropout layer o que fez a precisão subir para 21,88%, no entanto a CNN ainda estava longe de ser considerada precisa. Finalmente foi feito um pequeno estudo dos vários otimizadores possíveis, concluindo-se que o otimizador utilizado  o otimizador "Adam") não era apropriado, logo optou-se pelo otimizador SGD com learning rate de 0,001 que disparou a precisão para 76,34%. Com esta CNN tentou classificar-se as 700 imagens restantes, no entanto o modelo só encontrou 13 imagens para a categoria boa e 2 para a categoria má, logo desistiu-se deste método e passou-se à classificação manual das imagens todas. Depois da classificação obtiveram-se 143 topos na categoria boa, 459 na categoria média e 278 na má. Foi então usado o modelo aplicado às 100 imagens iniciais e isto resultou numa precisão de 74,42% e loss de 0,5494, o que são resultados bastante satisfatórios. A título de curiosidade, dado que o número de imagens em cada categoria era bastante diferente, fez-se a experiência de escolher aleatoriamente 143 imagens de cada categoria de modo a ter o mesmo número de imagens por classe e treinar uma nova CNN com este novo dataset, de modo tentar perceber se o equilíbrio de tamanho de classes têm influência nos resultados. Esta nova CNN teve uma precisão de 70,93% e uma loss de 0,6013. Sendo que estes resultados foram ligeiramente piores que os anteriores, conclui-se que o equilíbrio do tamanho das classes não é relevante para a precisão de
 uma CNN e que provavelmente o decréscimo de precisão entre modelos deveu-se até à redução do número de imagens para treinar o modelo (e como já é sabido, se não atingirmos um estado de overfitting, quantas mais imagens forem usadas para treino, melhor será o modelo).
 Procedendo para a realização de modelos para datasets com fundos preto e branco, dado que o nome destas novas imagens não correspondiam ao das imagens do dataset original, teve de ser realizada de novo uma classificação manual do dataset. Como, pelo menos, as imagens com fundo preto tinham o mesmo nome que as de fundo branco para a mesma rolha, apenas foi necessário classificar o dataset de fundo preto e depois fazer a correspondência para o dataset de fundo branco. Com estes novos datasets foram treinadas duas CNNs. A CNN aplicada ao dataset de fundo branco obteve uma precisão de 83,03% e um loss de 0,3904 e a CNN aplicada ao dataset de fundo preto obteve uma precisão de 86,14% e um loss de 0,3448. Depois procedeu-se à augmentation de ambos os datasets, com as transformações adição por canal, Alpha Blending, variação de contraste, desfoque gaussiano e ruído gaussiano. Para pôr em perspetiva, depois das augmentations o dataset já compreendia 5022 imagens, 2400 más, 2208 médias e 414 boas. Prevê-se que o treino destas duas novas CNNs para os novos datasets aumentados tenha demorado aproximadamente 8 horas, logo a sua avaliação só foi feita na semana seguinte. Criou-se um novo dataset para teste destas
 CNNs através da realização de mais augmentations às imagens originais. Os resultados para a CNN de fundo branco foi uma precisão de 92,35% e uma loss de 0,1858 e para a de fundo preto foi uma precisão de 96,36% e uma loss de 0,1216.
+
+A tabela seguinte resume os resultados de todas as CNNs:
 
 |Dataset|Precisão|Loss|
 |---|---|---|
@@ -19,27 +21,18 @@ CNNs através da realização de mais augmentations às imagens originais. Os re
 |Fundo Branco com augmentations|92,35%|0,1858|
 |Fundo Preto com augmentations|96,36%|0,1216|
 
-## Treino
+Conclui-se então que remover o fundo, trocá-lo por uma cor sólida e recortar a imagem para um Aspect
+Ratio quadrado é efetivamente vantajoso, pois obtemos CNNs com maior precisão, provavelmente porque
+o modelo não é "distraído"pelo fundo da imagem e a distorção aplicada pelo modelo às imagens no seu
+processamento é menos nocivo quando a imagem é quadrada, pois preserva as proporções. É também de
+notar que neste caso o uso de fundo preto foi vantajoso em relação ao branco, mas provavelmente isto
+é um caso específico desta aplicação. Conclui-se também que aplicar augmentations é também muito
+vantajoso pois, mesmo sendo testadas com imagens com augmentations (que funcionam como distorções)
+ao contrário do modelo com fundo normal, os modelos treinados com augmentations conseguiram ainda
+assim superar a performance dos modelos anteriores. Continuou também a verificar-se uma superioridade
+do modelo treinado com imagens com fundo preto.
 
-Após alguns erros e alguma pesquisa relativa a esses erros, foi usado o modelo de base VGG16 e o seguinte modelo:
-```python
-model = keras.models.Sequential([
-    base_model,   #VGG16
-    layers.GlobalAveragePooling2D(),
-    layers.Flatten(),
-    layers.Dropout(0.2),
-    layers.Dense(1024,activation='relu'),
-    layers.Dense(3,activation = 'softmax'),
-    layers.Flatten()
-])
-```
-Também se optou pelo otimizador SGD (Stochastic gradient descent) com um learning rate de 0.001, um batch size de 128 e 15 epochs. Aplicado ao dataset de fotografias com fundo, este treino resultou numa CNN com precisão de 74.42% e uma loss de 0.5494.
-
-Já que a classificação resultou num grande desiquilibrio no número de imagens por categoria, fez-se a tentativa de apagar as imagens excedentes em cada categoria de modo a todas terem o mesmo número de imagens e testou-se a hipotese de "um número equilibrado de imagens por categoria poderia levar a melhores resultados". Os resultados foram os contrários do esperado, sendo que so obteve uma precisão de 70.93% e uma loss de 0.7442, o que indica que o desequilibrio do número de imagens por categoria é irrelevante, mas o facto de termos removido imagens, ou seja o modelo teve menos imagens para aprender, leva a piores resultados.
-
-
-
-
+##Repetir resultados
 
 # Treino de RCNN para deteção de Bofes
 
